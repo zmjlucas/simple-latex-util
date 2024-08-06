@@ -1,0 +1,47 @@
+% easy_tikz_figure.example.tex
+
+\documentclass{article}
+
+\usepackage{tikz}
+\usepackage{easy_tikz_figure}
+
+\begin{document}
+
+% ========================================
+
+\newcommand{\exampleSingleFigure}{
+    \draw (0, 0) -- (2, 0) -- (2, 2) -- (0, 2) -- (0, 0);
+}
+
+Figure \ref{fig:single} is an example of single figure.
+
+\EasyTikzFigure[
+    label = fig:single,
+]{
+    \exampleSingleFigure / 
+}
+
+% ========================================
+
+Figure \ref{fig:multi} is an example of multiple subfigures.
+
+\newcommand{\exampleDrawCommandLeft}{
+    \draw (0, 0) -- (2, 0) -- (2, 2) -- (0, 2) -- (0, 0);
+}
+
+\newcommand{\exampleDrawCommandRight}{
+    \draw (0, 0) -- (3, 0) -- (3, 2) -- (0, 2) -- (0, 0);
+}
+
+\EasyTikzFigure[
+    caption = Multiple Subfigures Example,
+    label = fig:multi,
+    sep = 0.4\textwidth,
+]{
+    \exampleDrawCommandLeft / Fig Left,
+    \exampleDrawCommandRight / Fig Right
+}
+
+% ========================================
+
+\end{document}

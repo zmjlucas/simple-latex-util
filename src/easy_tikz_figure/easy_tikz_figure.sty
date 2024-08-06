@@ -1,0 +1,154 @@
+% easy_tikz_figure.sty
+\ProvidesPackage{easy_tikz_figure}
+
+\RequirePackage{caption, subcaption}
+\RequirePackage{graphicx, tikz, float}
+\RequirePackage{pgfkeys}
+\RequirePackage{comment}
+\RequirePackage{etoolbox}
+
+\makeatletter
+% ========================================
+
+\newcommand{\EasyTikzFigure@ifParamNotEmpty}[3]{
+  \ifboolexpr{
+    test {\expandafter\ifstrequal\expandafter{#1}{}}
+    or
+    test {\expandafter\ifstrequal\expandafter{#1}{ }}
+  }{#3}{#2}
+}
+
+% ========================================
+
+% Tikz macros
+\tikzset{EasyTikzFigure@GlobalScale/.style={
+    scale=#1,
+    every node/.append style={scale=#1}
+  }
+} 
+
+% ========================================
+
+\newcounter{EasyTikzFigure@ParamCounter}
+
+\newcommand{\EasyTikzFigure}[2][]{
+
+    % Optional arguments
+    \pgfkeys{
+        /EasyTikzFigure@OptionalArgs/.cd,
+        scale/.initial=1.0,
+        caption/.initial=,
+        label/.initial=,
+        sep/.initial=0.4\textwidth,
+    }
+    \pgfqkeys{/EasyTikzFigure@OptionalArgs}{#1}
+    \pgfkeysgetvalue{/EasyTikzFigure@OptionalArgs/scale}{\aScale}
+    \pgfkeysgetvalue{/EasyTikzFigure@OptionalArgs/caption}{\aCaption}
+    \pgfkeysgetvalue{/EasyTikzFigure@OptionalArgs/label}{\aLabel}
+    \pgfkeysgetvalue{/EasyTikzFigure@OptionalArgs/sep}{\aSep}
+
+    % Count how many draw commands are passed
+    \setcounter{EasyTikzFigure@ParamCounter}{0}
+    \foreach \pDrawCommand / \pCaption in {#2} {
+        \stepcounter{EasyTikzFigure@ParamCounter}
+    }
+
+    % Single figure
+    \ifnum \value{EasyTikzFigure@ParamCounter} = 1
+
+        \foreach \pDrawCommand / \pCaption in {#2} {
+            \begin{figure}[H]
+                \centering
+                \begin{tikzpicture}[EasyTikzFigure@GlobalScale = \aScale]
+                    \pDrawCommand
+                \end{tikzpicture}
+                
+                % Use aCaption if provided, otherwise pCaption
+                \EasyTikzFigure@ifParamNotEmpty{\aCaption}{
+                    \caption{\aCaption}
+                }{
+                    \EasyTikzFigure@ifParamNotEmpty{\pCaption}{
+                        \caption{\pCaption}
+                    }{
+                        \caption{}
+                    }
+                }
+                \label{\aLabel}
+            \end{figure}
+        }
+    
+    % Multiple subfigures
+    \else
+
+        \begin{figure}[H]
+            \centering
+            \foreach \pDrawCommand / \pCaption in {#2} {
+                \begin{subfigure}[b]{\aSep}
+                    \centering
+                    \begin{tikzpicture}[EasyTikzFigure@GlobalScale = \aScale]
+                        \pDrawCommand
+                    \end{tikzpicture}
+                    
+                    \EasyTikzFigure@ifParamNotEmpty{\pCaption}{
+                        \caption{\pCaption}
+                    }{
+                        \caption{}
+                    }
+                \end{subfigure}
+            }
+            \EasyTikzFigure@ifParamNotEmpty{\aCaption}{
+                \caption{\aCaption}
+            }{
+                \caption{}
+            }
+            \label{\aLabel}
+        \end{figure}
+
+    \fi
+
+}
+
+\begin{comment}
+
+    \EasyTikzFigure[
+        scale,
+        caption,
+        label,
+        sep
+    ]{pDrawContent}
+    Draw a tikz figure, support multiple subfigures.
+
+    Arguments:
+        [#2] pDrawContent:
+            Tikz drawing contents for each subfigure, seperated by comma.
+            If only one content is passed, create a single figure. Otherwise, this is treated as mutiple subfigures.
+
+            The content contains two arguments, seperated by slash like following:
+                pDrawCommand / pCaption
+
+            pDrawCommand:
+                You can define a command for this, e.g.
+                \newcommand{\MyDrawCommand}{
+                    \draw (0, 0) -- (1, 2);
+                    % More tikz commands
+                }
+
+            [O] pCaption:
+                Caption for each subfigure.
+                Note that if we are creating a single figure, the optional argument label will be used
+                instead of using pCaption
+
+        [O] scale: The global scale for all tikz pictures.
+
+        [O] caption: The caption of the major figure.
+
+        [O] label: The label of the major figure.
+
+        [O] sep: Distance between subfigures, this is used if multiple draw commands are given.
+
+\end{comment}
+
+% ========================================
+
+\makeatother
+\endinput
